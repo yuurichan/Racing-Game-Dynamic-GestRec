@@ -1,6 +1,6 @@
 # Dynamic Gesture Recognition App
 
-- Real-time Dynamic Gestures Recognition system, ultilizing:
+- Real-time Dynamic Gestures Recognition system, utilizing:
   - [Mediapipe Holistic](https://github.com/google/mediapipe/blob/master/docs/solutions/holistic.md)
   - [LSTM Models](#references)
   - UDP Sockets (for data transferring)
@@ -10,6 +10,10 @@
 (Again, will add requirement.txt and how to run later)
 ## Prerequisites
 (yeah this is where the requirement.txt will settle)
+
+## Included Gestures
+(make table here)
+
 ## Notes
 - Most Notebook files are deprecated, only "Copy2" and "Training" are updated/maintained.
 - Do remember to adjust the filepaths in the modules. The filepaths listed in the Notebook files are on my local machine.
