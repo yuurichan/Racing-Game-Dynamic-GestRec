@@ -17,6 +17,15 @@
 ## Notes
 - Most Notebook files are deprecated, only "Copy2" and "Training" are updated/maintained.
 - Do remember to adjust the filepaths in the modules. The filepaths listed in the Notebook files are on my local machine.
+- I might need to note that this warning (I got it from using a venv): `This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: SSE SSE2 SSE3 SSE4.1 SSE4.2 AVX AVX2 AVX_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.`.
+Means that Tensorflow is simply telling you that it can use the operations listed to make things faster. This does not affect the app in any way.
+You can choose to not display this by adding this at the start of the app file:
+```
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+```
+- Remember to exclude the folder containing the built app in Windows Defender Settings. It usually gives a false positive since apps compiled with PyInstaller don't have cetificates.
+- Notes about things to notice in app compiling are found in the README.txt file in the Released files.
 
 ## Modules
 ### Data Collection Module
@@ -85,10 +94,36 @@ Everything before v1.5 is tracked locally, I only pushed this current version to
   - Retrained some models for use with newly reworked dataset.
   - Fixed Keras classifier and TFLite classifier classes' "None" class problem (The system recognized something else rather than "None" when there are no landmarks detected).
   - Cleaned + reorganized most of the filebase of the project.
+ 
+- **v2.0: Release App + Bugfixes**
+  - Added UDP Socket support for [this project](https://github.com/Ghostexvan/FinalProject). UDP Socket is added to every Python app files (Both Keras/TFLite - 5f/10f).
+  - Is now built as an app, with 2 versions: Keras model ; TFLite model.
+  - Added TFLite models for 5f and 10f.
+  - Bugfix details:
+  	+ MOST IMPORTANT: Fixed most of the explanations in my "Copy2" and "Training" Notebook files. Reason being:
+  		1. IF you use OpenCV to mirror/flip and image horizontally, then you use Mediapipe Holistics on it, then it will process and get the opposite landmark side for you.
+  		2. This won't affect the models whatsoever. Since it was trained using the same mirrored landmarks.
+    
+  		E.G: Your LEFT Hand will have results.right_hand_landmarks; Your RIGHT SHOULDER will have PoseLandmark.LEFT_SHOULDER (the 11th pose landmark).
+  	+ Fixed label list out of bounds for app_keras_10f.py.
+  	+ Added note on how to turn off the app on its UI.
+   	
+  	**_(Steering Wheel section)_**
+  	+ Changed Steering wheel's minimal distance (for calculating angle + for displaying) from 100 --> 10.
+  	+ Fixed Steering wheel angle display. Mostly to prevent divide by 0 when calculating the angle between 2 hands.
+  	+ Adjustments to Steering wheel angle calculations: Caps your steering wheel angle to -90°/90° when the steering wheel angle exceed either of them.
+  	(The Old Steering wheel class (the one prior to v2.0) is still available for use, check the __init__ file in "utils" folder)
+  	
+  	**_(PyInstaller section)_**
+  	+ Fixed a major problem regarding app compiled from PyInstaller: "NoneType" object has no attribute "write".
+  		1. Problem details: "App is built with [noconsole / windowed] and tensorflow's logging is naively assuming that sys.stdout and sys.stderr are available, 
+   but in fact they are NoneType."
+  		2. Fix: (is specified at the start of every Python app files) - Sending output to a dummy stream.
 
-## TO DO LIST FOR UPCOMING VERSION 2.0
-- UDP Socket support + Controller support for https://github.com/Ghostexvan/FinalProject.
-- Build separate Executable file (.exe) for ease of use.
+## ~~TO DO LIST FOR UPCOMING VERSION 2.0~~ VERSION 2.0 IS RELEASED
+- ~~UDP Socket support + Controller support for https://github.com/Ghostexvan/FinalProject.~~
+- ~~Build separate Executable file (.exe) for ease of use.~~
+- If no problem occurs, v2.0 will be the final version for this app as a whole.
 
 # References
 - [Hand and Pose Landmark Visualization Codebase](https://github.com/Kazuhito00/mediapipe-python-sample/blob/main/sample_holistic.py)
