@@ -5,13 +5,14 @@ import os
 actions = np.array(["Idle", "StaticStraight", "LSteer", "RSteer", "Boost", "Brake", "BrakeHold", "Reverse", "None"])
 NONE_ACTION_IDX = 8
 full_path = os.path.realpath(__file__)
+dir_name = os.path.dirname(full_path)
 # print(os.path.dirname(full_path))
 
 # This (luckily) is a generic class used for both 10f and 5f models.
 class TFLiteGestureClassifier(object):
     def __init__(
             self,
-            model_path=os.path.join(os.path.dirname(full_path),"tflite","_7-5f-lstm_model_7.tflite"),
+            model_path=os.path.join(dir_name,"tflite","7-lstm_model_7.tflite"),
             threshold=0.5,
             num_threads=1
     ):
@@ -44,12 +45,11 @@ class TFLiteGestureClassifier(object):
             return NONE_ACTION_IDX
 
         input_details_tensor_index = self.input_details[0]['index']
-        output_details_tensor_index = self.output_details[0]['index']
-
         self.interpreter.set_tensor(
             input_details_tensor_index,
             np.expand_dims(np.float32(inp_seq), axis=0))
         self.interpreter.invoke()
+        output_details_tensor_index = self.output_details[0]['index']
 
         res = self.interpreter.get_tensor(output_details_tensor_index)
 

@@ -3,6 +3,17 @@ import cv2
 from math import sqrt, acos, degrees
 
 '''
+I HAVE TO NOTE THINGS HERE IN CASE MY GOLDFISH BRAIN ACTUALLY FORGETS:
+- So this is basically the first iteration of the SteeringWheel class that I'd written.
+- It's almost the same as the new version, only difference is that:
+    + __set_good_hand_order is disabled in the new version.
+    + Again, in the new version, your angles aren't flipped (your hand positions aren't flipped).
+    If your steering angle is less than -90deg or more than 90deg then it'll be capped at the respective value (-90 or 90).
+- Replace the class import in __init__ if you want to use this version, just uncomment the old one and
+comment the new one.
+'''
+
+'''
 IMPORTANT!!! READ HERE BEFORE YOU PROCEED WITH ANYTHING ELSE IN THIS FILE:
 ENG: It has come to my attention that when you use Mediapipe Holistic to process a mirrored/flipped image,
 it WILL RETURN the landmark of the opposite side of your body in general (Hands, Pose, Face).
@@ -18,10 +29,6 @@ EXAMPLE:  results = holistics.process(image)
 - Right Hand will have results.left_hand_landmarks
 
 - Right Shoulder will have PoseLandmarks.LEFT_SHOULDER landmarks (PoseLandmarks is imported from Mediapipe)
-'''
-
-'''
-SteeringWheel class new version
 '''
 
 # Clamp func/method to limit a number to be within a certain range
@@ -65,16 +72,16 @@ class SteeringWheel:
         self.current_hand_distance = self.get_distance_between_hands()
         # print(self.current_hand_distance)
 
-        '''
-        IMPORTANT CHANGE HERE: Instead of having the angles flipped when one of my hand landmarks go over the other.
-        I wanted to make them so that the max angle you can dish out is -90deg to 90deg, no more, no less.
-        '''
-        # self.__set_good_hand_order()
-
+        # ''' IGNORE THIS PEOPLE
+        # IMPORTANT CHANGE HERE: Instead of having the angles flipped when one of my hand landmarks go over the other.
+        # I wanted to make them so that the max angle you can dish out is -90deg to 90deg, no more, no less.
+        # So we "clamp" it. We can remove the clamp and undo the __set_good_hands position when we need them though.
+        # '''
+        self.__set_good_hand_order()
         # Putting __set_good_hand_order before this since it'll help with the swapped landmark hand angle
         # (đổi dấu của góc vô lăng khi 1 trong 2 tay vượt qua góc 90)
         # current_angle có dấu trừ vì ta quy định bên trái là góc âm, bên phải là góc dương
-        self.current_angle = round(self.get_angle_between_hands(), 2)
+        self.current_angle = -round(self.get_angle_between_hands(), 2)
 
         # So this would've had self.draw_steering_wheel but I decided to make it
         # a seperated method that returns an image like my other visualize methods
@@ -82,14 +89,8 @@ class SteeringWheel:
     # Get the x y coords of the 9th landmark of each hands
     # They need to be multiplied with the app's screen ratio to get the coord on OpenCV's window
     def get_hand_landmarks(self, results):
-        '''
-        (Read IMPORTANT!!! READ HERE first)
-        Tráo giá trị của 2 cái vì khi Mediapipe Holistic nhận diện landmarks, nó sẽ bị ngược:
-        VD: Left Hand --> Right Hand Landmarks
-            Right Hand --> Left Hand Landmarks
-        '''
-        left_hand_landmarks = results.right_hand_landmarks
-        right_hand_landmarks = results.left_hand_landmarks
+        left_hand_landmarks = results.left_hand_landmarks
+        right_hand_landmarks = results.right_hand_landmarks
         if left_hand_landmarks is not None and right_hand_landmarks is not None:
             if len(self.hands_landmarks_list) >= 2:
                 # Get the preprocessed hand landmark coords
@@ -128,8 +129,8 @@ class SteeringWheel:
             if self.current_hand_distance < 10:
                 return 0
 
-            pos1 = self.hands_landmarks_list[0]     # Left Hand
-            pos2 = self.hands_landmarks_list[1]     # Right Hand
+            pos1 = self.hands_landmarks_list[0]
+            pos2 = self.hands_landmarks_list[1]
             vec_hands = (pos2[0] - pos1[0] , pos2[1] - pos1[1])
             vec_comp = (0,1)
             magn_vec_hands = sqrt(vec_hands[0]**2 + vec_hands[1]**2)
@@ -137,18 +138,7 @@ class SteeringWheel:
             angle = acos( (vec_comp[0]*vec_hands[0] + vec_comp[1]*vec_hands[1]) / (magn_vec_comp * magn_vec_hands) )
             angle = degrees(angle)
 
-            # I hate how scuffed this is to be honest...
-            if pos1[0] > pos2[0]:
-                print("x1: ", pos1[0], " ; x2: ", pos2[0])
-                print("y1: ", pos1[1], " ; y2: ", pos2[1])
-                # Trường hợp quẹo trái lớn hơn -90 độ: Left x > Right x; Left y > Right y (vì trong OpenCV, càng xuống dưới y càng lớn)
-                if pos1[1] > pos2[1]: #and (angle - 90) <= -90:
-                    return -90
-                # Trường hợp quẹo phải lớn hơn 90 độ: Left x > Right x; Left y < Right y (vì trong OpenCV, càng xuống dưới y càng lớn)
-                if pos1[1] < pos2[1]: #and (angle - 90) >= 90:
-                    return 90
-
-            return -(angle - 90)
+            return angle - 90
         else:
             return 0
 
@@ -156,6 +146,9 @@ class SteeringWheel:
     # + Left Hand's coord is further right than Right Hand's coord - Tay trái nằm phía bên phải của tay phải
     # + Right Hand's coord is further left than Left Hand's coord - Tay phải nằm phía bên trái của tay trái
     # (Ta chỉ cần xét 1 trong 2 vì tụi nó tương tự nhau, xét x của Left > x của Right OR x Right < x của Left)
+    '''
+    
+    '''
     def __set_good_hand_order(self):
         if len(self.hands_landmarks_list) >= 2 and self.hands_landmarks_list[0] is not None and self.hands_landmarks_list[1] is not None:
             if (self.hands_landmarks_list[0][0] > self.hands_landmarks_list[1][0]) :
@@ -183,7 +176,7 @@ class SteeringWheel:
                            int(self.get_distance_between_hands() / 2), (128, 128, 128), 2)
 
         # If there are literally no hand landmarks then Angle will be 0
-        cv2.putText(image, "Angle : " + str(round(self.get_angle_between_hands(), 2)), (0+30, 720-30), cv2.FONT_HERSHEY_SIMPLEX, 1,
+        cv2.putText(image, "Angle : " + str(-round(self.get_angle_between_hands(), 2)), (0+30, 720-30), cv2.FONT_HERSHEY_SIMPLEX, 1,
                     (0, 255, 0), 2, 1)
 
         return image

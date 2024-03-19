@@ -44,6 +44,7 @@ class KerasGestureClassifier(object):
         if self.is_body_detected is False:
             return NONE_ACTION_IDX
 
+        # res = self.model.predict(np.expand_dims(inp_seq, axis=0), verbose=0)[0]
         res = self.model.predict(np.expand_dims(inp_seq, axis=0))[0]
 
         '''

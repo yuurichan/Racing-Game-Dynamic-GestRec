@@ -3,11 +3,49 @@ import copy
 import argparse
 
 '''
+IMPORTANT!!! READ HERE BEFORE YOU PROCEED WITH ANYTHING ELSE IN THIS FILE:
+ENG: It has come to my attention that when you use Mediapipe Holistic to process a mirrored/flipped image,
+it WILL RETURN the landmark of the opposite side of your body in general (Hands, Pose, Face).
+This WON'T affect our trained models, since we kinda trained them using mirrored landmarks as well.
+
+VIET: Nếu ta sử dụng Mediapipe Holistic để xử lý và lấy landmark từ hình đã được mirrored/flipped bằng cv2.flip,
+Mediapipe sẽ trả về các landmark ngược bên với các bộ phận có thể nhận diện được (Hands, Pose, Face).
+Việc này sẽ không làm ảnh hưởng tới mô hình được huấn luyện trước đó, vì ta đã luyện mô hình với tập dữ liệu
+gồm các landmarks đã được mirrored.
+
+EXAMPLE:  results = holistics.process(image)
+- Left Hand will have results.right_hand_landmarks
+- Right Hand will have results.left_hand_landmarks
+
+- Right Shoulder will have PoseLandmarks.LEFT_SHOULDER landmarks (PoseLandmarks is imported from Mediapipe)
+'''
+
+'''
 Since cv2.VideoCapture(0, CAP_MSMF) takes a REALLY LONG WHILE to start up (roughly 20s), I've decided to disable the HW Transforms.
 This MUST be put before import cv2
 '''
 import os
+import sys
+
 os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
+
+'''
+IMPORTANT 2: App compiled with PyInstaller was having problems with Tensorflow logging. This occurs when:
+ App is built with [noconsole / windowed] and tensorflow's logging is naively assuming that sys.stdout and sys.stderr are available, 
+ but in fact they are None.
+
+ One of the fixes for this is to add this snippet at the start of the app, like so:
+ (If sys.stdout or sys.stderr are not available --> set them to os.devnull objects.)
+ This is the most surefire way to counter this problem I think.
+'''
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, "w")
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, "w")
+'''
+ The other way is to "Change the "verbose" argument of the predict function to 0".
+ The predict function is in keras_classifier.py file
+'''
 
 import cv2 as cv
 import numpy as np
@@ -38,7 +76,23 @@ import socket
 # Defining socket attributes ----------------------------------------------------------------------
 UDP_IP = "127.0.0.1"
 UDP_PORT = 27001
-# NOTE that I have YET to implement this
+# This app will act as a Client so it doesn't need to bind itself with the IP and PORT
+# We will only send data/messages to the specified IP and PORT
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+# UDP DATA Processing --------------------------------------------------------------------------
+# Label/class is already a string, Angle is actually a float value rounded to 2 decimals
+def process_udp_data(label, angle):
+    processed_data = label + '$' + str(angle)
+    return processed_data
+
+
+# Sending data through UDP
+def send_data(sock, UDP_IP, UDP_PORT, data, debug_var=True):
+    sock.sendto(data.encode("UTF-8"), (UDP_IP, UDP_PORT))
+    if (debug_var):
+        print("Data: ", data, " sent!", "_" * 10)
+        print(data.split('$'))
 
 # MODIFYING Mediapipe Holistics for capturing Shoulder + Arms + Hands only ------------------------
 from mediapipe.python.solutions.holistic import PoseLandmark
@@ -170,11 +224,15 @@ def draw_hand_v2(image, hand_landmarks):
                 cv.circle(image, (landmark_x, landmark_y), 12, (0, 255, 0), 2)
 
             # if not upper_body_only:
-            if True:
-                cv.putText(image, "z:" + str(round(landmark_z, 3)),
-                           (landmark_x - 10, landmark_y - 10),
-                           cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1,
-                           cv.LINE_AA)
+            # if True:
+                # cv.putText(image, "z:" + str(round(landmark_z, 3)),
+                #            (landmark_x - 10, landmark_y - 10),
+                #            cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1,
+                #            cv.LINE_AA)
+                # cv.putText(image, "x:" + str(round(landmark_x, 3)),
+                #            (landmark_x - 10, landmark_y - 10),
+                #            cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1,
+                #            cv.LINE_AA)
 
         # 接続線
         if len(landmark_point) > 0:
@@ -398,7 +456,7 @@ def main():
     # (This would delay our output down somewhat though. But it does our output more correct and somewhat precise.)
 
     # THIS is our predictor/classifier
-    gest_clsf = KerasGestureClassifier(model_path=current_model_path, threshold=0.5)
+    gest_clsf = KerasGestureClassifier(model_path=current_model_path, threshold=0.6)
 
     ### !!!Webcam capturing loop
     while True:
@@ -410,6 +468,12 @@ def main():
             break
         image = cv.flip(image, 1)  # Mirror our captured image
         debug_image = copy.deepcopy(image)
+
+        # Small note for future users ########################################
+        debug_image = cv.putText(debug_image, "This app can be turned off using the 'M' key", (230, 30),
+                                 cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 4, cv.LINE_AA)
+        debug_image = cv.putText(debug_image, "This app can be turned off using the 'M' key", (230, 30),
+                                 cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.LINE_AA)
 
         # Holistics Processing ###############################################
         image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
@@ -484,7 +548,7 @@ def main():
         # print("Before trimming: ", len(pred_sequence))
 
         # Take the last 5 frames, if we have 0-6 7 8 then it'd take 4 5 6 7 8 for prediction
-        '''Moved to line 521'''
+        # '''Moved to line 521'''
         pred_sequence = pred_sequence[-5:]
         # print("After trimming: ", len(pred_sequence))
 
@@ -566,14 +630,23 @@ def main():
         cv.putText(debug_image, "Gesture:" + current_action, (10, 70),
                    cv.FONT_HERSHEY_SIMPLEX, 1.0, fps_color, 2, cv.LINE_AA)
 
+        # Sending our output as UDP Data #######################################
+        output_data = process_udp_data(current_action, steering_wheel.current_angle)
+        send_data(sock, UDP_IP, UDP_PORT, output_data)
+
         # Escaping camera loop #################################################
-        '''We use the ESC key'''
+        '''
+        Replaced ESC key --> M key
+        We use the M key, since we might need the ESC key to pause the game.
+        '''
         key = cv.waitKey(1)
-        if key == 27:  # ESC
+        if key == 109:  # 'm' key
+            # Close UDP connection
+            sock.close()
             break
 
         # Display our processed image ##########################################
-        cv.imshow('MediaPipe Holistic Demo', debug_image)
+        cv.imshow('5F Keras - MediaPipe Holistic Demo', debug_image)
 
     ### The end of our camera loop
     cap.release()
