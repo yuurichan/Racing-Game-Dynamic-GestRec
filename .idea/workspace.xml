@@ -5,15 +5,10 @@
       <change beforePath="$PROJECT_DIR$/.idea/SLAR-main.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/SLAR-main.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Mediapipe Holistics LSTM Test-Copy2.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Mediapipe Holistics LSTM Test-Copy2.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Mediapipe Holistics LSTM Test-Training.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Mediapipe Holistics LSTM Test-Training.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app_keras_10f.py" beforeDir="false" afterPath="$PROJECT_DIR$/app_keras_10f.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app_keras_5f.py" beforeDir="false" afterPath="$PROJECT_DIR$/app_keras_5f.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app_tf_10f.py" beforeDir="false" afterPath="$PROJECT_DIR$/app_tf_10f.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app_tf_5f.py" beforeDir="false" afterPath="$PROJECT_DIR$/app_tf_5f.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/keras_gesture_classifier.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/keras_gesture_classifier.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/tflite_gesture_classifier.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/tflite_gesture_classifier.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/steeringwheel.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/steeringwheel.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

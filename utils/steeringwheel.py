@@ -44,9 +44,9 @@ class SteeringWheel:
         self.mp_drawing_styles = mp.solutions.drawing_styles
         self.mp_holistics = mp.solutions.holistic   # Might be unused cuz we'll be getting
                                                     # our landmarks from the main app
-        self.image = None
-        self.image_width = 960
-        self.image_height = 720
+        # self.image = None
+        # self.image_width = img_width
+        # self.image_height = img_height
         self.hands_landmarks_list = [None, None]    # Getting 9th landmark coords (x, y - we're not using z)
                                                     # on left and right hands
         print("Current list - count: ", len(self.hands_landmarks_list))
@@ -59,29 +59,21 @@ class SteeringWheel:
         self.current_hand_distance = 0
 
     # results = holistic.process(image)
-    def update(self, results):
+    def update(self, results, img):
         # Get the x, y coords of the 9th landmark of each hand
-        self.get_hand_landmarks(results)
+        self.get_hand_landmarks(results, img)
         self.current_hand_distance = self.get_distance_between_hands()
         # print(self.current_hand_distance)
-
-        '''
-        IMPORTANT CHANGE HERE: Instead of having the angles flipped when one of my hand landmarks go over the other.
-        I wanted to make them so that the max angle you can dish out is -90deg to 90deg, no more, no less.
-        '''
-        # self.__set_good_hand_order()
-
-        # Putting __set_good_hand_order before this since it'll help with the swapped landmark hand angle
-        # (đổi dấu của góc vô lăng khi 1 trong 2 tay vượt qua góc 90)
-        # current_angle có dấu trừ vì ta quy định bên trái là góc âm, bên phải là góc dương
         self.current_angle = round(self.get_angle_between_hands(), 2)
 
         # So this would've had self.draw_steering_wheel but I decided to make it
         # a seperated method that returns an image like my other visualize methods
 
+
     # Get the x y coords of the 9th landmark of each hands
     # They need to be multiplied with the app's screen ratio to get the coord on OpenCV's window
-    def get_hand_landmarks(self, results):
+    def get_hand_landmarks(self, results, img):
+        image_width, image_height = img.shape[1], img.shape[0]
         '''
         (Read IMPORTANT!!! READ HERE first)
         Tráo giá trị của 2 cái vì khi Mediapipe Holistic nhận diện landmarks, nó sẽ bị ngược:
@@ -93,11 +85,12 @@ class SteeringWheel:
         if left_hand_landmarks is not None and right_hand_landmarks is not None:
             if len(self.hands_landmarks_list) >= 2:
                 # Get the preprocessed hand landmark coords
-                self.hands_landmarks_list[0] = [min(int(left_hand_landmarks.landmark[9].x * self.image_width), self.image_width - 1),
-                                                min(int(left_hand_landmarks.landmark[9].y * self.image_height), self.image_height - 1)]
-                self.hands_landmarks_list[1] = [min(int(right_hand_landmarks.landmark[9].x * self.image_width), self.image_width - 1),
-                                                min(int(right_hand_landmarks.landmark[9].y * self.image_height), self.image_height - 1)]
-
+                self.hands_landmarks_list[0] = [min(int(left_hand_landmarks.landmark[9].x * image_width), image_width - 1),
+                                                min(int(left_hand_landmarks.landmark[9].y * image_height), image_height - 1)]
+                self.hands_landmarks_list[1] = [min(int(right_hand_landmarks.landmark[9].x * image_width), image_width - 1),
+                                                min(int(right_hand_landmarks.landmark[9].y * image_height), image_height - 1)]
+                print("Left Hand: ", left_hand_landmarks.landmark[9].x, " - ", left_hand_landmarks.landmark[9].y)
+                print("Right Hand: ", right_hand_landmarks.landmark[9].x, " - ", right_hand_landmarks.landmark[9].y)
             # if len(self.hands_landmarks_list) == 0:
             #     # Left hand first, then right hand
             #     self.hands_landmarks_list.append([min(int(left_hand_landmarks.landmark[9].x * self.image_width), self.image_width - 1),
@@ -152,6 +145,7 @@ class SteeringWheel:
         else:
             return 0
 
+    # THIS METHOD IS CURRENTLY UNUSED
     # This is to swap the coordinates' order when:
     # + Left Hand's coord is further right than Right Hand's coord - Tay trái nằm phía bên phải của tay phải
     # + Right Hand's coord is further left than Left Hand's coord - Tay phải nằm phía bên trái của tay trái
@@ -166,16 +160,26 @@ class SteeringWheel:
 
     # Draw steering wheel (I feel like I should return an image here, like my other visualization methods)
     def draw_steering_wheel(self, image):
-        # image_width, image_height = image.shape[1], image.shape[0]
+        image_width, image_height = image.shape[1], image.shape[0]
 
         if len(self.hands_landmarks_list) >= 2 and self.hands_landmarks_list[0] is not None and self.hands_landmarks_list[1] is not None:
             if self.current_hand_distance >= 10:
-                # Draw debug point to average hand landmarks position (hopefully the hands)
-                cv2.circle(image, self.hands_landmarks_list[0], 12, (0, 0, 255), 2)
-                cv2.circle(image, self.hands_landmarks_list[1], 12, (255, 0, 0), 2)
+                # Draw debug point
+                cv2.circle(image, (self.hands_landmarks_list[0][0], self.hands_landmarks_list[0][1]), 12, (0, 0, 255), 2)
+                cv2.circle(image, (self.hands_landmarks_list[1][0], self.hands_landmarks_list[1][1]), 12, (255, 0, 0), 2)
+
+                # For debug only, ignore this
+                # cv2.putText(image, "x:" + str(round(self.hands_landmarks_list[0][0], 3)),
+                #            (self.hands_landmarks_list[0][0] - 10, self.hands_landmarks_list[0][1] - 10),
+                #            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1,
+                #            cv2.LINE_AA)
+                # cv2.putText(image, "x:" + str(round(self.hands_landmarks_list[1][0], 3)),
+                #             (self.hands_landmarks_list[1][0] - 10, self.hands_landmarks_list[1][1] - 10),
+                #             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1,
+                #             cv2.LINE_AA)
 
                 # Draw debug line between the hands
-                cv2.line(image, self.hands_landmarks_list[0], self.hands_landmarks_list[1], (128, 128, 128), 2)
+                cv2.line(image, (self.hands_landmarks_list[0][0], self.hands_landmarks_list[0][1]), (self.hands_landmarks_list[1][0], self.hands_landmarks_list[1][1]), (128, 128, 128), 2)
 
                 # Draw circle to simulate steering wheel
                 cv2.circle(image, (int((self.hands_landmarks_list[0][0] + self.hands_landmarks_list[1][0]) / 2),
@@ -187,3 +191,33 @@ class SteeringWheel:
                     (0, 255, 0), 2, 1)
 
         return image
+
+    #########################################################################################
+    # THESE ARE FOR TESTING (and they work, but I fixed the original so we won't need these for now)
+    def update_v2(self, left_hand_landmarks, right_hand_landmarks, img):
+        # Get the x, y coords of the 9th landmark of each hand
+        self.get_hand_landmarks_v2(left_hand_landmarks, right_hand_landmarks, img)
+        self.current_hand_distance = self.get_distance_between_hands()
+
+        # Putting __set_good_hand_order before this since it'll help with the swapped landmark hand angle
+        # (đổi dấu của góc vô lăng khi 1 trong 2 tay vượt qua góc 90)
+        # current_angle có dấu trừ vì ta quy định bên trái là góc âm, bên phải là góc dương
+        self.current_angle = round(self.get_angle_between_hands(), 2)
+
+    def get_hand_landmarks_v2(self, left_hand_landmarks, right_hand_landmarks, img):
+        image_width, image_height = img.shape[1], img.shape[0]
+        if left_hand_landmarks is not None and right_hand_landmarks is not None:
+            if len(self.hands_landmarks_list) >= 2:
+                # Get the preprocessed hand landmark coords
+                self.hands_landmarks_list[0] = [min(int(right_hand_landmarks.landmark[9].x * image_width), image_width - 1),
+                                                min(int(right_hand_landmarks.landmark[9].y * image_height), image_height - 1)]
+                self.hands_landmarks_list[1] = [min(int(left_hand_landmarks.landmark[9].x * image_width), image_width - 1),
+                                                min(int(left_hand_landmarks.landmark[9].y * image_height), image_height - 1)]
+
+        # If either of the hand landmarks are None (undetectable) then I'll just empty the hand_landmark_list,
+        # thus rendering the other funcs unusable
+        else:
+            self.hands_landmarks_list = [None, None]
+
+    # THESE ARE FOR TESTING (and they work, but I fixed the original so we won't need these for now)
+    #########################################################################################

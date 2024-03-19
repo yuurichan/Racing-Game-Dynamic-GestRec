@@ -481,10 +481,11 @@ def main():
         debug_image = copy.deepcopy(image)
 
         # Small note for future users ########################################
-        debug_image = cv.putText(debug_image, "This app can be turned off using the 'M' key", (230, 30),
-                                 cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 4, cv.LINE_AA)
-        debug_image = cv.putText(debug_image, "This app can be turned off using the 'M' key", (230, 30),
-                                 cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.LINE_AA)
+        if (image.shape[1] >= 900):
+            debug_image = cv.putText(debug_image, "This app can be turned off using the 'M' key", (230, 30),
+                                     cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 4, cv.LINE_AA)
+            debug_image = cv.putText(debug_image, "This app can be turned off using the 'M' key", (230, 30),
+                                     cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.LINE_AA)
 
         # Holistics Processing ###############################################
         image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
@@ -516,7 +517,7 @@ def main():
             # brect = calc_bounding_rect(debug_image, right_hand_landmarks)
 
         # Steering Wheel ######################################################
-        steering_wheel.update(results)
+        steering_wheel.update(results, image)
         debug_image = steering_wheel.draw_steering_wheel(debug_image)
 
         # Displaying FPS ######################################################

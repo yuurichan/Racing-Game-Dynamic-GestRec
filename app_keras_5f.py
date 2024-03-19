@@ -505,7 +505,7 @@ def main():
             # brect = calc_bounding_rect(debug_image, right_hand_landmarks)
 
         # Steering Wheel ######################################################
-        steering_wheel.update(results)
+        steering_wheel.update(results, image)
         debug_image = steering_wheel.draw_steering_wheel(debug_image)
 
         # Displaying FPS ######################################################

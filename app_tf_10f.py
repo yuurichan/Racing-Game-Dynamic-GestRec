@@ -228,11 +228,11 @@ def draw_hand_v2(image, hand_landmarks):
                 cv.circle(image, (landmark_x, landmark_y), 12, (0, 255, 0), 2)
 
             # if not upper_body_only:
-            if True:
-                cv.putText(image, "z:" + str(round(landmark_z, 3)),
-                           (landmark_x - 10, landmark_y - 10),
-                           cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1,
-                           cv.LINE_AA)
+            # if True:
+            #     cv.putText(image, "x:" + str(round(landmark_x, 3)),
+            #                (landmark_x - 10, landmark_y - 10),
+            #                cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1,
+            #                cv.LINE_AA)
 
         # 接続線
         if len(landmark_point) > 0:
@@ -475,10 +475,12 @@ def main():
         debug_image = copy.deepcopy(image)
 
         # Small note for future users ########################################
-        debug_image = cv.putText(debug_image, "This app can be turned off using the 'M' key", (230, 30),
-                                 cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 4, cv.LINE_AA)
-        debug_image = cv.putText(debug_image, "This app can be turned off using the 'M' key", (230, 30),
-                                 cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.LINE_AA)
+        # If image width is too small ==> Don't display this
+        if (image.shape[1] >= 900):
+            debug_image = cv.putText(debug_image, "This app can be turned off using the 'M' key", (230, 30),
+                                     cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 4, cv.LINE_AA)
+            debug_image = cv.putText(debug_image, "This app can be turned off using the 'M' key", (230, 30),
+                                     cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.LINE_AA)
 
         # Holistics Processing ###############################################
         image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
@@ -510,7 +512,11 @@ def main():
             # brect = calc_bounding_rect(debug_image, right_hand_landmarks)
 
         # Steering Wheel ######################################################
-        steering_wheel.update(results)
+        steering_wheel.update(results, image)
+        # steering_wheel.update_v2(left_hand_landmarks, right_hand_landmarks, image)
+
+        # Checking image size to see whether it matches OpenCV's cap_width and cap_height
+        # print(debug_image.shape[1], debug_image.shape[0])
         debug_image = steering_wheel.draw_steering_wheel(debug_image)
 
         # Displaying FPS ######################################################
