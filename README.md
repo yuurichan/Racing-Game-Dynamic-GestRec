@@ -119,6 +119,14 @@ Everything before v1.5 is tracked locally, I only pushed this current version to
   		1. Problem details: "App is built with [noconsole / windowed] and tensorflow's logging is naively assuming that sys.stdout and sys.stderr are available, 
    but in fact they are NoneType."
   		2. Fix: (is specified at the start of every Python app files) - Sending output to a dummy stream.
+ 
+- **v2.1: Hotfix**
+  - Fixed SteeringWheel class not being able to get both hand landmarks correctly, which affected how the steering wheel is displayed on the app. This problem only occurs when cap_width and cap_height are small.
+      + _(E.G: Putting video capture size at **(950, 720)** would return us an image size of **(960, 720)**. But **(720, 540)** would return us an image size of **(640, 480)**, which is smaller than our initial size.)_
+  - SteeringWheel class will take the image size directly from the app to calculate the hand landmark coordinates, instead of having to rely on a constant cap_width and cap_height defined by the user.
+  - Removed image_width and image_height attributes in SteeringWheel class (reasons listed above).
+  - Rebuilt both Keras and TFLite to implement the SteeringWheel class update.
+  - Added a TFLite app version for smaller monitors.
 
 ## ~~TO DO LIST FOR UPCOMING VERSION 2.0~~ VERSION 2.0 IS RELEASED
 - ~~UDP Socket support + Controller support for https://github.com/Ghostexvan/FinalProject.~~
