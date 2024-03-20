@@ -187,7 +187,7 @@ class SteeringWheel:
                            int(self.get_distance_between_hands() / 2), (128, 128, 128), 2)
 
         # If there are literally no hand landmarks then Angle will be 0
-        cv2.putText(image, "Angle : " + str(round(self.get_angle_between_hands(), 2)), (0+30, 720-30), cv2.FONT_HERSHEY_SIMPLEX, 1,
+        cv2.putText(image, "Angle : " + str(round(self.get_angle_between_hands(), 2)), (0+30, image_height-30), cv2.FONT_HERSHEY_SIMPLEX, 1,
                     (0, 255, 0), 2, 1)
 
         return image
