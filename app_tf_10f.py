@@ -614,7 +614,7 @@ def main():
         We use the M key, since we might need the ESC key to pause the game.
         '''
         key = cv.waitKey(1)
-        if key == 109:  # 'm' key
+        if key == ord('m') or key == ord('M'):  # 'm' key
             # Close UDP connection
             sock.close()
             break
