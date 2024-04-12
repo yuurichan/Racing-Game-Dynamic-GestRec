@@ -7,16 +7,27 @@
 - Is also a controller for [a thesis project that my friend and I are working on](https://github.com/Ghostexvan/FinalProject), using UDP Sockets, Unity and C#.
 
 # Getting Started
-(Again, will add requirement.txt and how to run later)
+(Again, will add how to run later)
 ## Prerequisites
-(yeah this is where the requirement.txt will settle)
+```
+opencv-python
+mediapipe>=0.10.5
+tensorflow==2.13.0
+tflite-support
+pandas
+scikit-learn>=1.3.1
+pyinstaller
+auto-py-to-exe
+notebook
+```
 
 ## Included Gestures
 (make table here)
 
 ## Notes
-- Most Notebook files are deprecated, only "Copy2" and "Training" are updated/maintained. You can also take a look at "Copy1_improv" to see the baseline of v1.0. (I'd advise against using it though...)
-- Do remember to adjust the filepaths in the modules. The filepaths listed in the Notebook files are on my local machine.
+- Most Notebook files are deprecated, only "Copy2" and "Training" are updated/maintained.
+- _(You can also take a look at "Copy1_improv" to see the baseline of v1.0. I'd advise against using it though...)_
+- Do remember to **adjust the filepaths in the modules**. The filepaths listed in the Notebook files are only on my local machine.
 - I might need to note that this warning (I got it from using a venv): `This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
 To enable the following instructions: SSE SSE2 SSE3 SSE4.1 SSE4.2 AVX AVX2 AVX_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.`.
 Means that Tensorflow is simply telling you that it can use the operations listed to make things faster. This does not affect the app in any way.
