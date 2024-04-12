@@ -15,7 +15,7 @@
 (make table here)
 
 ## Notes
-- Most Notebook files are deprecated, only "Copy2" and "Training" are updated/maintained.
+- Most Notebook files are deprecated, only "Copy2" and "Training" are updated/maintained. You can also take a look at "Copy1_improv" to see the baseline of v1.0. (I'd advise against using it though...)
 - Do remember to adjust the filepaths in the modules. The filepaths listed in the Notebook files are on my local machine.
 - I might need to note that this warning (I got it from using a venv): `This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
 To enable the following instructions: SSE SSE2 SSE3 SSE4.1 SSE4.2 AVX AVX2 AVX_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.`.
@@ -53,7 +53,14 @@ Dataset/
 ┣ _10FPS_LandmarkData/
 ┗ _5FPS_LandmarkData/
 ```
-- Adjust your datapath in the Data Collection, Data Processing and Model Training modules.
+- (Similarly, if you want to use the "Copy1_improv" file, extract the "_LandmarkData - 30fModified" into the Dataset folder like so:)
+```
+Dataset/
+┗ _LandmarkData - 30fModified/
+```
+Then again, I wouldn't recommend using it. It's more or less a prototype (baseline for v1.0).
+
+- _**IMPORTANT: Adjust your datapath in the Data Collection, Data Processing and Model Training modules.**_
 
 # Models
 (Will add structures + evals later)
@@ -128,10 +135,11 @@ Everything before v1.5 is tracked locally, I only pushed this current version to
   - Rebuilt both Keras and TFLite to implement the SteeringWheel class update.
   - Added a TFLite app version for smaller monitors.
 
-## ~~TO DO LIST FOR UPCOMING VERSION 2.0~~ VERSION 2.0 IS RELEASED
+## ~~TO DO LIST FOR UPCOMING VERSION 2.0~~ VERSION ~~2.0~~ 2.1.1 IS RELEASED
 - ~~UDP Socket support + Controller support for https://github.com/Ghostexvan/FinalProject.~~
 - ~~Build separate Executable file (.exe) for ease of use.~~
-- If no problem occurs, v2.0 will be the final version for this app as a whole.
+- ~~If no problem occurs, v2.0 will be the final version for this app as a whole.~~
+- We have gotten to v2.1.1 with a couple of bug fixes here and there. This should be final (I hope I don't jinx it).
 
 # References
 - [Hand and Pose Landmark Visualization Codebase](https://github.com/Kazuhito00/mediapipe-python-sample/blob/main/sample_holistic.py)
