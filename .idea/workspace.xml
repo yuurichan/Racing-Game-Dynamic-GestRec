@@ -3,8 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="b710fa19-1d3a-431b-a852-2eb662338dfe" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Mediapipe Holistics LSTM Test-Copy2.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Mediapipe Holistics LSTM Test-Copy2.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Mediapipe Holistics LSTM Test-Copy1_improv.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Mediapipe Holistics LSTM Test-Copy1_improv.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Mediapipe Holistics LSTM Test-Training.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Mediapipe Holistics LSTM Test-Training.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app_tf_10f.py" beforeDir="false" afterPath="$PROJECT_DIR$/app_tf_10f.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,7 +42,7 @@
       <recent name="K:\Pycharm\NLN\_holistics\SLAR-main\utils" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.app_tf_10f_small">
+  <component name="RunManager" selected="Python.app_tf_10f">
     <configuration name="app_keras_10f" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="SLAR-main" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -149,8 +150,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.app_tf_10f_small" />
         <item itemvalue="Python.app_tf_10f" />
+        <item itemvalue="Python.app_tf_10f_small" />
         <item itemvalue="Python.app_keras_10f" />
         <item itemvalue="Python.app_keras_5f" />
         <item itemvalue="Python.app_tf_5f" />
