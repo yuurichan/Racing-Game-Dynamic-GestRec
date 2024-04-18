@@ -6,6 +6,7 @@ actions = np.array(["Idle", "StaticStraight", "LSteer", "RSteer", "Boost", "Brak
 NONE_ACTION_IDX = 8
 full_path = os.path.realpath(__file__)
 dir_name = os.path.dirname(full_path)
+np.set_printoptions(suppress=True)
 # print(os.path.dirname(full_path))
 
 # This (luckily) is a generic class used for both 10f and 5f models.
@@ -14,7 +15,8 @@ class TFLiteGestureClassifier(object):
             self,
             model_path=os.path.join(dir_name,"tflite","7-lstm_model_7.tflite"),
             threshold=0.5,
-            num_threads=1
+            num_threads=1,
+            debug_mode=False
     ):
         self.interpreter = tf.lite.Interpreter(model_path=model_path,
                                                num_threads=num_threads)
@@ -25,6 +27,8 @@ class TFLiteGestureClassifier(object):
         self.pred_threshold = threshold
 
         self.is_body_detected = False
+
+        self.debug_mode = debug_mode
 
     def update_body_detect(self, results):
         if results is not None and results.pose_landmarks is not None:
@@ -52,6 +56,10 @@ class TFLiteGestureClassifier(object):
         output_details_tensor_index = self.output_details[0]['index']
 
         res = self.interpreter.get_tensor(output_details_tensor_index)
+
+        # Prints out predicition accuracies if debug_mode is True
+        if self.debug_mode is True:
+            print("Preds accuracy list: ", res)
 
         result_idx = np.argmax(np.squeeze(res))
 
