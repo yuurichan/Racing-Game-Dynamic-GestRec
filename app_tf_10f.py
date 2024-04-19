@@ -587,7 +587,8 @@ def main():
         predictions.append(res_idx)
 
         # Get the most common res_idx out of the 3 most recent predictions
-        # This will ALWAYS work since we'd appended into "predictions". Meaning we can use Counter(preds).most_com[0]
+        # This will ALWAYS work since we'd appended into "predictions". Meaning we can use Counter(preds).most_com(<num of common elements>)[0]
+        # Counter(preds).most_common(<num of common elements>) returns a list, if preds is empty then the returned list will be [] straight up
         # IT is technically a list [(element, count)]
         most_common_res_idx = Counter(predictions).most_common(1)[0][0]
 

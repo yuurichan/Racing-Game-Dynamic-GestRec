@@ -3,21 +3,21 @@ import copy
 import argparse
 
 '''
-IMPORTANT!!! READ HERE BEFORE YOU PROCEED WITH ANYTHING ELSE IN THIS FILE:
-ENG: It has come to my attention that when you use Mediapipe Holistic to process a mirrored/flipped image,
-it WILL RETURN the landmark of the opposite side of your body in general (Hands, Pose, Face).
-This WON'T affect our trained models, since we kinda trained them using mirrored landmarks as well.
+IMPORTANT NOTE (in Viet since future me's going to be reading this):
+After tinkering around and comparing the original app_tf_10f with the Claiomh version (this file), I found out about some stuffs:
+- app_tf_10f lấy keypoints liên tục và chỉ lấy 10 tập keypoints cuối cho việc dự đoán.
+    + Khi pred_seq (mảng chứa keypoints) có length = 10 thì thực hiện việc dự đoán mà không có cho pred_seq = []
+    + Điều này đảm bảo hệ thống luôn nhận diện đc cử chỉ 1 cách liên tục, nhưng có thể xảy ra vấn đề các dự đoán
+    thừa/sai (phần nào được fix qua việc sử dụng deque)
 
-VIET: Nếu ta sử dụng Mediapipe Holistic để xử lý và lấy landmark từ hình đã được mirrored/flipped bằng cv2.flip,
-Mediapipe sẽ trả về các landmark ngược bên với các bộ phận có thể nhận diện được (Hands, Pose, Face).
-Việc này sẽ không làm ảnh hưởng tới mô hình được huấn luyện trước đó, vì ta đã luyện mô hình với tập dữ liệu
-gồm các landmarks đã được mirrored.
-
-EXAMPLE:  results = holistics.process(image)
-- Left Hand will have results.right_hand_landmarks
-- Right Hand will have results.left_hand_landmarks
-
-- Right Shoulder will have PoseLandmarks.LEFT_SHOULDER landmarks (PoseLandmarks is imported from Mediapipe)
+- Claiomh lấy keypoints liên tục cho đến khi pred_seq có đủ 10 tập keypoints.
+    + Khi pred_seq có length = 10 thì thực hiện việc dự đoán và cho pred_seq = [] (nghĩa là 10f sau phải lấy lại đủ mới dự đoán đc tiếp)
+    + Chỉ append res_idx vào "predictions" list khi pred_seq có length = 10 và có dự đoán xảy ra, nếu không thì
+    most_common_idx sẽ là NONE_ACTION_IDX
+    + Với deque length = 3 thì thời gian phản hồi sẽ chậm hơn rất nhiều so với app_tf_10f
+    + Với deque length = 1 thì thời gian phản hồi lại gần như tương tự với app_tf_10f, nhưng khi sử dụng deque = 1 thì ta không
+    loại được các dự đoán lỗi/lệch.
+    + Claiomh ver hoạt động đúng theo lý thuyết, nhưng lại gặp hạn chế là thời gian dự đoán chậm hoặc việc loại bỏ dự đoán lỗi khó
 '''
 
 '''
@@ -29,11 +29,7 @@ import sys
 
 os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
 
-'''
-IMPORTANT 2 doesn't apply for tflite version I think, I had a PyInstaller compiling error regarding this part.
-TFLite interpreter doesn't print outputs in sys.stdout like how the original Tensorflow Keras did, so I didn't
-include the fix here.
-'''
+
 '''
 IMPORTANT 2: App compiled with PyInstaller was having problems with Tensorflow logging. This occurs when:
  App is built with [noconsole / windowed] and tensorflow's logging is naively assuming that sys.stdout and sys.stderr are available,
@@ -47,10 +43,7 @@ if sys.stdout is None:
     sys.stdout = open(os.devnull, "w")
 if sys.stderr is None:
     sys.stderr = open(os.devnull, "w")
-'''
- The other way is to "Change the "verbose" argument of the predict function to 0".
- The predict function is in tflite_classifier.py file
-'''
+
 
 import cv2 as cv
 import numpy as np
@@ -402,6 +395,42 @@ def extract_keypoints_v3(results):
 
     return np.concatenate([pose, lh, rh])
 
+
+def extract_keypoints_v3_Claiomh(results):
+    # Left Shoulder coord
+    try:
+        LeftSh_x = results.pose_landmarks.landmark[11].x
+        LeftSh_y = results.pose_landmarks.landmark[11].y
+    except:
+        LeftSh_x = 0
+        LeftSh_y = 0
+
+    pose = []
+    lh = []
+    rh = []
+    # Pose Landmarks
+    if results.pose_landmarks:
+        for index, landmark in enumerate(results.pose_landmarks.landmark):
+            if index in included_landmarks:
+                pose = np.append(pose, [landmark.x - LeftSh_x, landmark.y - LeftSh_y, landmark.z, landmark.visibility])
+                # This will be flattened upon appending
+    else:
+        pose = np.zeros(6 * 4)
+    # Left Hand Landmarks
+    if results.left_hand_landmarks:
+        lh = np.array(
+            [[res.x - LeftSh_x, res.y - LeftSh_y, res.z] for res in results.left_hand_landmarks.landmark]).flatten()
+    else:
+        lh = np.zeros(21 * 3)
+    # Right Hand Landmarks
+    if results.right_hand_landmarks:
+        rh = np.array(
+            [[res.x - LeftSh_x, res.y - LeftSh_y, res.z] for res in results.right_hand_landmarks.landmark]).flatten()
+    else:
+        rh = np.zeros(21 * 3)
+
+    return np.concatenate([pose, lh, rh])
+
 # GETTING MOST COMMON PRED (DEBUG) -------------------------------------------------------------
 def max_counter(lst):
     values, counts = np.unique(lst, return_counts=True)
@@ -420,16 +449,12 @@ But what if it's [3 8 8 0 0], then it will return 8 == NONE_ACTION_IDX, even tho
 We don't want our actions/gestures to be ignored, that's actually where this func comes in.
 
 The flow will be as follows:
-pred_list = max_counter(predictions)    ---> Changes every frame since "predictions" list is appended and popped constantly
+pred_list = max_counter(predictions)    ---> Changes every frame since predictions list is appended and popped constantly
 most_common_idx = Counter.most_common
 if len(pred_list) > 1:
     Scan through the list, let most_common_idx = the first element in the list that isn't NONE_ACTION_IDX
 
 That's basically it. Really scuffed way to solve this problem I'll admit.
-
-This won't work with empty "predictions" list though. But since it's constantly being appended with either the prediction
-or NONE_ACTION_IDX, this func works normally.
-For the Claiomh ver, I had to add if len(predictions) > 0 to check.
 '''
 
 # Main func (pretty much the core of this app to begin with) -----------------------------------
@@ -483,7 +508,7 @@ def main():
     # was trained using lists of (5, 150) - sequences of 5frames, 150landmarks each.
     current_action = "None"  # Basically a variable to store our prediction result. (We use our predicted index
     # to get the corresponding string)
-    predictions = deque(maxlen=5)
+    predictions = deque(maxlen=1)
     # This is to filter out small/random results.
     # We'd store our predictions in this list, and we check within the 3/5/10 last predictions to
     # grab and return the most common element in that range.
@@ -569,6 +594,8 @@ def main():
 
         # Append keypoint array constantly (until we reach at least 5 frames for prediction)
         pred_sequence.append(keypoints)
+
+        print("Pred seq: ", pred_sequence)
         # print(len(pred_sequence))
 
         # Take the last 5 frames, if we have 0-6 7 8 then it'd take 4 5 6 7 8 for prediction
@@ -618,36 +645,56 @@ def main():
         if len(pred_sequence) >= 10:
             res_idx = gest_clsf(pred_sequence[-10:])  # This is our classifier object
 
-        # Append our predicted idx (or default idx) into our "prediction generalization list"
-        predictions.append(res_idx)
+            pred_sequence = []  # This is literally the only difference between the normal ver and this ver
+
+            # Append our predicted idx (or default idx) into our "prediction generalization list"
+            '''
+            THIS WON'T BE ADDED IN THE FINAL (APP) VERSION, THIS IS PURELY FOR USE IN MY THESIS REPORT
+            
+            Difference between this ver and the normal ver is that this one only appends WHEN pred_seq's length = 10
+            and there's a prediction made in gest_clsf.
+            This helps stops the constant NONE class being spammed.
+            '''
+            predictions.append(res_idx)
+
         print("Preds: ", predictions)
-        print("Test func: ", max_counter(predictions))
+
+
+        if len(predictions) > 0:
+            print("Test func: ", max_counter(predictions))
 
 
         # Get the most common res_idx out of the 3 most recent predictions
         # This will ALWAYS work since we'd appended into "predictions". Meaning we can use Counter(preds).most_com(<num of common elements>)[0]
         # Counter(preds).most_common(<num of common elements>) returns a list, if preds is empty then the returned list will be [] straight up
         # IT is technically a list [(element, count)]
-        most_common_res_idx = Counter(predictions).most_common(1)[0][0]
+        '''I kinda forgot that this won't work when "predictions" has a length of 0, because heck we can't access the [0][0] element of an empty list []'''
+        if len(predictions) > 0:
+            most_common_res_idx = Counter(predictions).most_common(1)[0][0]
+        else:
+            most_common_res_idx = NONE_ACTION_IDX
+        '''Is only used when we first started our camera loop, I'm too lazy to think of anything else...'''
+
 
         '''
         THIS WON'T BE ADDED IN THE FINAL (APP) VERSION, I ONLY WANTED TO SOLVE THIS PROBLEM BECAUSE IT'S BEEN
         IN MY PLANS FOR A LONG WHILE NOW.
         '''
-        # Delibrately trying to solve the case when there are more than 2 most common values together
-        # and NONE_ACTION_IDX is picked rather than other actions
-        # Here we get a list of most common elements
-        most_common_pred_list = max_counter(predictions)
-        # Loop through the list, get the FIRST common element that isn't NONE_ACTION_IDX from the list
-        # This only runs when there are MORE THAN 1 MOST COMMON INDICES.
-        # If there is only 1 MOST COMMON INDEX, then get the result from Counter.most_common (line 607)
-        if len(most_common_pred_list) > 1:
-            for element in most_common_pred_list:
-                if element[0] == NONE_ACTION_IDX:
-                    continue
-                else:
-                    most_common_res_idx = element[0]
-                    break
+        if len(predictions) > 0:
+            # Delibrately trying to solve the case when there are more than 2 most common values together
+            # and NONE_ACTION_IDX is picked rather than other actions
+            # Here we get a list of most common elements
+            most_common_pred_list = max_counter(predictions)
+            # Loop through the list, get the FIRST common element that isn't NONE_ACTION_IDX from the list
+            # This only runs when there are MORE THAN 1 MOST COMMON INDICES.
+            # If there is only 1 MOST COMMON INDEX, then get the result from Counter.most_common (line 607)
+            if len(most_common_pred_list) > 1:
+                for element in most_common_pred_list:
+                    if element[0] == NONE_ACTION_IDX:
+                        continue
+                    else:
+                        most_common_res_idx = element[0]
+                        break
         '''
         THIS WON'T BE ADDED IN THE FINAL (APP) VERSION, I ONLY WANTED TO SOLVE THIS PROBLEM BECAUSE IT'S BEEN
         IN MY PLANS FOR A LONG WHILE NOW.
