@@ -151,6 +151,7 @@ Everything before v1.5 is tracked locally, I only pushed this current version to
 - ~~Build separate Executable file (.exe) for ease of use.~~
 - ~~If no problem occurs, v2.0 will be the final version for this app as a whole.~~
 - We have gotten to v2.1.1 with a couple of bug fixes here and there. This should be final (I hope I don't jinx it).
+- _**Do note that if there are any updates in the future, I will only be focusing mainly on "app_tf_10f.py" and 10f (8 Gestures) Models.**_
 
 # References
 - [Hand and Pose Landmark Visualization Codebase](https://github.com/Kazuhito00/mediapipe-python-sample/blob/main/sample_holistic.py)
