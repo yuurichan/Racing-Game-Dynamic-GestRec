@@ -169,11 +169,12 @@ def draw_pose_landmarks_v2(
             continue
 
         if index in included_landmarks:
-            cv.circle(image, (landmark_x, landmark_y), 5, (0, 255, 0), 2)
-            # cv.putText(image, "z:" + str(round(landmark_z, 3)),
-            #            (landmark_x - 10, landmark_y - 10),
-            #            cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1,
-            #            cv.LINE_AA)
+            cv.circle(image, (landmark_x, landmark_y), 5, (0, 0, 255), 2)
+            cv.circle(image, (landmark_x, landmark_y), 7, (0, 0, 0), 2)
+            cv.putText(image, "z:" + str(round(landmark_z, 3)),
+                       (landmark_x - 10, landmark_y - 10),
+                       cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1,
+                       cv.LINE_AA)
 
 
 
@@ -351,8 +352,8 @@ def get_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--device", type=int, default=0)
-    parser.add_argument("--width", help='cap width', type=int, default=720)
-    parser.add_argument("--height", help='cap height', type=int, default=540) # 540
+    parser.add_argument("--width", help='cap width', type=int, default=960) # 720
+    parser.add_argument("--height", help='cap height', type=int, default=720) # 540
 
     # parser.add_argument('--upper_body_only', action='store_true')  # 0.8.3 or less
     parser.add_argument('--unuse_smooth_landmarks', action='store_true')
@@ -409,6 +410,9 @@ def main():
 
     # カメラ準備 ###############################################################
     cap = cv.VideoCapture(cap_device)
+    capture_target = cap_device
+    # capture_target = "F:/OBS REcs/Thesus Data/2024-03-08 21-31-56.mp4"
+    # cap = cv.VideoCapture(capture_target)
     cap.set(cv.CAP_PROP_FRAME_WIDTH, cap_width)
     cap.set(cv.CAP_PROP_FRAME_HEIGHT, cap_height)
     cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('m', 'j', 'p', 'g'))
@@ -443,7 +447,9 @@ def main():
         ret, image = cap.read()
         if not ret:
             break
-        image = cv.flip(image, 1)  # ミラー表示
+        # Check if capture_target is a video path or webcam
+        if isinstance(capture_target, int):
+            image = cv.flip(image, 1)  # ミラー表示
         debug_image = copy.deepcopy(image)
 
         # 検出実施 #############################################################
@@ -492,6 +498,8 @@ def main():
             # )
             debug_image = draw_bounding_rect(use_brect, debug_image, brect)
 
+            # print("Pose: ", results.pose_landmarks.landmark)
+
 
         # Pose:World座標プロット #############################################
         # if plot_world_landmark:
@@ -523,6 +531,8 @@ def main():
             # draw_hand_v2(debug_image, results.left_hand_landmarks)
             debug_image = draw_hand_v2(debug_image, left_hand_landmarks)
             debug_image = draw_bounding_rect(use_brect, debug_image, brect)
+
+            # print("LHand: ", results.left_hand_landmarks.landmark)
         # 右手
         if right_hand_landmarks is not None:
             # 手の平重心計算
@@ -543,12 +553,15 @@ def main():
             debug_image = draw_hand_v2(debug_image, right_hand_landmarks)
             debug_image = draw_bounding_rect(use_brect, debug_image, brect)
 
+            # print("RHand: ", results.right_hand_landmarks.landmark)
+
         # FPS表示
         # if enable_segmentation and results.segmentation_mask is not None:
         #     fps_color = (255, 255, 255)
         # else:
         #     fps_color = (0, 255, 0)
         fps_color = (0, 255, 0)
+
         cv.putText(debug_image, "FPS:" + str(display_fps), (10, 30),
                    cv.FONT_HERSHEY_SIMPLEX, 1.0, fps_color, 2, cv.LINE_AA)
 
