@@ -89,8 +89,9 @@ class SteeringWheel:
                                                 min(int(left_hand_landmarks.landmark[9].y * image_height), image_height - 1)]
                 self.hands_landmarks_list[1] = [min(int(right_hand_landmarks.landmark[9].x * image_width), image_width - 1),
                                                 min(int(right_hand_landmarks.landmark[9].y * image_height), image_height - 1)]
-                print("Left Hand: ", left_hand_landmarks.landmark[9].x, " - ", left_hand_landmarks.landmark[9].y)
-                print("Right Hand: ", right_hand_landmarks.landmark[9].x, " - ", right_hand_landmarks.landmark[9].y)
+                # print("Left Hand: ", left_hand_landmarks.landmark[9].x, " - ", left_hand_landmarks.landmark[9].y)
+                # print("Right Hand: ", right_hand_landmarks.landmark[9].x, " - ", right_hand_landmarks.landmark[9].y)
+
             # if len(self.hands_landmarks_list) == 0:
             #     # Left hand first, then right hand
             #     self.hands_landmarks_list.append([min(int(left_hand_landmarks.landmark[9].x * self.image_width), self.image_width - 1),

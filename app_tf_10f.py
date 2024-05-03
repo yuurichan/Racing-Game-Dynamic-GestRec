@@ -3,6 +3,30 @@ import copy
 import argparse
 
 '''
+IMPORTANT NOTE (in Viet since future me's going to be reading this):
+After tinkering around and comparing the original app_tf_10f with the Claiomh version (this file), I found out about some stuffs:
+- app_tf_10f lấy keypoints liên tục và chỉ lấy 10 tập keypoints cuối cho việc dự đoán.
+    + Khi pred_seq (mảng chứa keypoints) có length = 10 thì thực hiện việc dự đoán mà không có cho pred_seq = []
+    + Điều này đảm bảo hệ thống luôn nhận diện đc cử chỉ 1 cách liên tục, nhưng có thể xảy ra vấn đề các dự đoán
+    thừa/sai (điều này (partly) được fix qua việc sử dụng deque và chỉ lấy dự đoán common nhất trong đám)
+
+- Claiomh lấy keypoints liên tục cho đến khi pred_seq có đủ 10 tập keypoints.
+    + Khi pred_seq có length = 10 thì thực hiện việc dự đoán và cho pred_seq = [] (nghĩa là 10f sau phải lấy lại đủ mới dự đoán đc tiếp)
+    + Chỉ append res_idx vào "predictions" list khi pred_seq có length = 10 và có dự đoán xảy ra, nếu không thì
+    most_common_idx sẽ là NONE_ACTION_IDX
+    + Với deque length = 3 thì thời gian phản hồi sẽ chậm hơn rất nhiều so với app_tf_10f
+    + Với deque length = 1 thì thời gian phản hồi lại gần như tương tự với app_tf_10f, nhưng khi sử dụng deque = 1 thì ta không
+    loại được các dự đoán lỗi/lệch. Này chỉ hoạt động khi ta để cho current_action lấy action với mọi res_idx
+    + Nếu ta để current_action ở trong pred_seq có length = 10 thì tgian dự đoán sẽ tăng
+    + Claiomh ver hoạt động đúng theo lý thuyết, nhưng lại gặp hạn chế là thời gian dự đoán chậm hoặc việc loại bỏ dự đoán lỗi khó
+    
+--> Thời gian dự đoán (gồm tgian lụm 10f + tgian chạy mô hình) phụ thuộc vào FPS của app. Cụ thể hơn:
+- Với model 10f, với app có 30FPS thì tgian là ~0.3s. App 15-20FPS thì lên 0.59~0.6s
+- Với model 5f, thử với app 15-20FPS thì tgian lại là ~0.3s??
+==> Vì vậy ứng dụng thiên về việc sử dụng cách của app_tf_10f hơn là cách Claiomh
+'''
+
+'''
 IMPORTANT!!! READ HERE BEFORE YOU PROCEED WITH ANYTHING ELSE IN THIS FILE:
 ENG: It has come to my attention that when you use Mediapipe Holistic to process a mirrored/flipped image,
 it WILL RETURN the landmark of the opposite side of your body in general (Hands, Pose, Face).

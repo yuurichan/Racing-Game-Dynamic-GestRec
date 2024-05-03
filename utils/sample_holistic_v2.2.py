@@ -106,11 +106,11 @@ def draw_hand_v2(image, hand_landmarks):
             cv.circle(image, (landmark_x, landmark_y), 5, (0, 255, 0), 2)
             cv.circle(image, (landmark_x, landmark_y), 12, (0, 255, 0), 2)
 
-        if True:
-            cv.putText(image, "z:" + str(round(landmark_z, 3)),
-                       (landmark_x - 10, landmark_y - 10),
-                       cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1,
-                       cv.LINE_AA)
+        # if True:
+        #     cv.putText(image, "z:" + str(round(landmark_z, 3)),
+        #                (landmark_x - 10, landmark_y - 10),
+        #                cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1,
+        #                cv.LINE_AA)
 
     # 接続線
     if len(landmark_point) > 0:
@@ -171,10 +171,10 @@ def draw_pose_landmarks_v2(
         if index in included_landmarks:
             cv.circle(image, (landmark_x, landmark_y), 5, (0, 0, 255), 2)
             cv.circle(image, (landmark_x, landmark_y), 7, (0, 0, 0), 2)
-            cv.putText(image, "z:" + str(round(landmark_z, 3)),
-                       (landmark_x - 10, landmark_y - 10),
-                       cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1,
-                       cv.LINE_AA)
+            # cv.putText(image, "z:" + str(round(landmark_z, 3)),
+            #            (landmark_x - 10, landmark_y - 10),
+            #            cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1,
+            #            cv.LINE_AA)
 
 
 
@@ -431,6 +431,7 @@ def main():
 
     # FPS計測モジュール ########################################################
     cvFpsCalc = CvFpsCalc(buffer_len=10)
+
 
     # World座標プロット ########################################################
     # if plot_world_landmark:

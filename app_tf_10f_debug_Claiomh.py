@@ -116,7 +116,10 @@ NONE_ACTION_IDX = 8  # Yeah I made this up, purely for when there's nothing happ
 # Specifying FILE PATHS ------------------------------------------------------------------------
 full_path = os.path.realpath(__file__)
 dir_path = os.path.dirname(full_path)
-current_model_path = os.path.join(dir_path, "models", "tflite", "7-fix-lstm_model_7.tflite")
+
+# current_model_path = os.path.join(dir_path, "models", "tflite", "7-fix-lstm_model_7.tflite")
+# Testing on
+current_model_path = os.path.join(dir_path, "models", "tflite", "1-lstm_model_1.tflite")
 
 
 # Getting arguments ----------------------------------------------------------------------------

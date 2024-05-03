@@ -122,6 +122,7 @@ NONE_ACTION_IDX = 8  # Yeah I made this up, purely for when there's nothing happ
 full_path = os.path.realpath(__file__)
 dir_path = os.path.dirname(full_path)
 current_model_path = os.path.join(dir_path, "models", "7-lstm_model_7.keras")
+# current_model_path = os.path.join(dir_path, "models", "1-lstm_model_1_5-avg.keras")
 
 
 # Getting arguments ----------------------------------------------------------------------------
